@@ -1,0 +1,18 @@
+{
+  "name": "node-tumblr-rss",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mike Meyer <npm@meyer.fm> (http://meyermade.com)",
+  "license": "ISC",
+  "dependencies": {
+    "coffee-script": "^1.9.3",
+    "express": "^4.13.1",
+    "rss": "^1.1.1",
+    "rsvp": "^3.0.18",
+    "tumblr": "^0.4.1"
+  }
+}
