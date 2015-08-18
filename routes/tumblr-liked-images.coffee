@@ -115,9 +115,13 @@ module.exports = (request, response) ->
 
 			switch post.type
 				when "photo"
-					post.photos.forEach (p, idx) ->
+					post.photos.forEach (p, idx, arr) ->
+						titleSuffix = ""
+						if arr.length > 1
+							titleSuffix = " (#{idx+1} of #{arr.length})"
+
 						newFeedItem =
-							title:       post_title.join(" • ")
+							title:       post_title.join(" • ") + titleSuffix
 							description: [
 								img(p.original_size.url, p.original_size.width, p.original_size.height)
 								if p.caption != "" then p.caption else []
@@ -138,9 +142,14 @@ module.exports = (request, response) ->
 
 				when "link"
 					if post.photos
-						post.photos.forEach (p, idx) ->
+						post.photos.forEach (p, idx, arr) ->
+
+							titleSuffix = ""
+							if arr.length > 1
+								titleSuffix = " (#{idx+1} of #{arr.length})"
+
 							newFeedItem =
-								title:       post_title.join(" • ")
+								title:       post_title.join(" • ") + titleSuffix
 								description: [].concat(
 									img(p.original_size.url, p.original_size.width, p.original_size.height),
 									if post.excerpt != '' then "<blockquote><p>#{post.excerpt}</p></blockquote>" else []
