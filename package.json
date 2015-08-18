@@ -10,7 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "coffee-script": "^1.9.3",
+    "dotenv": "^1.2.0",
     "express": "^4.13.1",
+    "express-list-routes": "^0.1.4",
+    "flickrapi": "^0.3.35",
     "rss": "^1.1.1",
     "rsvp": "^3.0.18",
     "tumblr": "^0.4.1"
