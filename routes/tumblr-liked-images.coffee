@@ -84,7 +84,7 @@ module.exports = (request, response) ->
 			post_title = []
 
 			tags = post.tags.map (t) ->
-				"<a href='http://#{post.blog_name}.tumblr.com/tagged/#{encodeURIComponent t}'>##{t}</a>"
+				"<a href=\"http://#{post.blog_name}.tumblr.com/tagged/#{encodeURIComponent t}\">##{t}</a>"
 
 			if post.title && post.title != ''
 				post_title.push post.title
