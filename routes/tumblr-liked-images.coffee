@@ -71,7 +71,7 @@ module.exports = (request, response) ->
 		feed = new RSS({
 			title: "Tumblr Likes for #{results.userInfo.name}"
 			description: ""
-			feed_url: "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com/#{process.env.TUMBLR_CONSUMER_KEY}.rss"
+			feed_url: "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-likes.rss"
 			site_url: "https://www.tumblr.com/likes"
 			# pubDate: result.posts[0].date
 			# ttl: "20" # minutes
@@ -111,7 +111,7 @@ module.exports = (request, response) ->
 
 			switch post.type
 				when "photo"
-					post.photos.forEach (p) ->
+					post.photos.forEach (p, idx) ->
 						newFeedItem =
 							title:       post_title.join(" • ")
 							description: [
@@ -121,7 +121,7 @@ module.exports = (request, response) ->
 								if tags.length > 0 then "<p>#{tags.join(", ")}</p>" else []
 							].join('\n\n')
 							url:         post.post_url
-							guid:        post.id
+							guid:        "#{post.id}-#{(''+000+idx).slice(-2)}"
 							categories:  post.tags
 							author:      post.blog_name
 							date:        post.date
@@ -134,7 +134,7 @@ module.exports = (request, response) ->
 
 				when "link"
 					if post.photos
-						post.photos.forEach (p) ->
+						post.photos.forEach (p, idx) ->
 							newFeedItem =
 								title:       post_title.join(" • ")
 								description: [].concat(
@@ -144,7 +144,7 @@ module.exports = (request, response) ->
 									if tags.length > 0 then "<p>#{tags.join(", ")}</p>" else []
 								).join('\n\n')
 								url:         post.post_url
-								guid:        post.id
+								guid:        "#{post.id}-#{(''+000+idx).slice(-2)}"
 								categories:  post.tags
 								author:      post.blog_name
 								date:        post.date

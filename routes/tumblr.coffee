@@ -65,7 +65,7 @@ module.exports = (request, response) ->
 		feed = new RSS({
 			title: "Tumblr Dashboard for #{results.userInfo.name}"
 			description: ""
-			feed_url: "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com/#{process.env.TUMBLR_CONSUMER_KEY}.rss"
+			feed_url: "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-dashboard.rss"
 			site_url: "http://www.tumblr.com/dashboard"
 			# pubDate: result.posts[0].date
 			# ttl: "20" # minutes
