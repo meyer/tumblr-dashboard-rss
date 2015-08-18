@@ -109,6 +109,10 @@ module.exports = (request, response) ->
 
 			console.log "post.type: #{post.type} -- #{JSON.stringify post, null, '  '}"
 
+			like_date = new Date(post.liked_timestamp * 1000)
+
+			console.log "LIKE DATE:", like_date
+
 			switch post.type
 				when "photo"
 					post.photos.forEach (p, idx) ->
@@ -124,7 +128,7 @@ module.exports = (request, response) ->
 							guid:        "#{post.id}-#{('000'+idx).slice(-2)}"
 							categories:  post.tags
 							author:      post.blog_name
-							date:        post.date
+							date:        like_date
 
 						feed.item newFeedItem
 
@@ -147,7 +151,7 @@ module.exports = (request, response) ->
 								guid:        "#{post.id}-#{('000'+idx).slice(-2)}"
 								categories:  post.tags
 								author:      post.blog_name
-								date:        post.date
+								date:        like_date
 
 							console.log "Link post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
 
