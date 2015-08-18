@@ -121,7 +121,7 @@ module.exports = (request, response) ->
 								if tags.length > 0 then "<p>#{tags.join(", ")}</p>" else []
 							].join('\n\n')
 							url:         post.post_url
-							guid:        "#{post.id}-#{(''+000+idx).slice(-2)}"
+							guid:        "#{post.id}-#{('000'+idx).slice(-2)}"
 							categories:  post.tags
 							author:      post.blog_name
 							date:        post.date
@@ -144,7 +144,7 @@ module.exports = (request, response) ->
 									if tags.length > 0 then "<p>#{tags.join(", ")}</p>" else []
 								).join('\n\n')
 								url:         post.post_url
-								guid:        "#{post.id}-#{(''+000+idx).slice(-2)}"
+								guid:        "#{post.id}-#{('000'+idx).slice(-2)}"
 								categories:  post.tags
 								author:      post.blog_name
 								date:        post.date
