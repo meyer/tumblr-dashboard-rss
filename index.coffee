@@ -8,7 +8,7 @@ require('dotenv').load()
 server.use('/', router)
 
 routes = {
-	tumblrOld: require("./routes/tumblr-old")
+	empty: require("./routes/empty")
 	tumblrDash: require('./routes/tumblr-dashboard')
 	tumblrLikes: require("./routes/tumblr-liked-images")
 	flickrPhotostream: require("./routes/flickr-photostream")
@@ -23,9 +23,7 @@ router.route('/').get (request, response) ->
 router.route("/#{process.env.FLICKR_API_KEY}/flickr-photostream.rss").get(routes.flickrPhotostream)
 router.route("/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-dashboard.rss").get(routes.tumblrDash)
 router.route("/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-likes.rss").get(routes.tumblrLikes)
-
-# TODO: deprecate
-router.route("/#{process.env.TUMBLR_CONSUMER_KEY}.rss").get(routes.tumblrOld)
+router.route("/#{process.env.TUMBLR_CONSUMER_KEY}.rss").get(routes.empty)
 
 localURL = "http://localhost:#{server.get("port")}"
 remoteURL = "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com"
