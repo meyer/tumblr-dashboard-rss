@@ -108,6 +108,8 @@ module.exports = (request, response) ->
 
 			console.log "post.type: #{post.type} -- #{JSON.stringify post, null, '  '}"
 
+			post_footer.push '<hr>'
+			post_footer.push '<p>' + howmany(post.note_count, "note") + '</p>'
 			post_footer.push "<p>#{tags.join(", ")}</p>" if tags.length > 0
 			post_footer.push "<p>Source: <a href='#{post.source_url}'>#{post.source_title}</a></p>" if post.source_url
 			post_footer.push "<p>&check; Liked</p>" if post.liked
@@ -115,24 +117,32 @@ module.exports = (request, response) ->
 
 			switch post.type
 				when "photo"
-					post.photos.forEach (p, idx, arr) ->
+					post.photos.map((p, idx, arr) ->
 						titleSuffix = ""
 						if arr.length > 1
 							titleSuffix = " (#{idx+1} of #{arr.length})"
 
+						p.title = post_title.join(" • ") + titleSuffix
+
 						desc = []
+						desc.push img(p.original_size.url, p.original_size.width, p.original_size.height)
 						desc.push(p.caption) if p.caption != ""
 						desc.push(post.caption) if post.caption != ""
 
+						p.desc = [].concat(desc, post_footer).join('\n\n')
+
+						# p.image_permalink ???
+						# "#{post.id}-#{('000'+(idx+1)).slice(-4)}"
+						p.guid = p.original_size.url
+
+						p
+
+					).reverse().forEach (p) ->
 						newFeedItem =
-							title:       post_title.join(" • ") + titleSuffix
-							description: [].concat(
-								img(p.original_size.url, p.original_size.width, p.original_size.height),
-								desc,
-								post_footer,
-							).join('\n\n')
+							title:       p.title
+							description: p.desc
 							url:         post.post_url
-							guid:        "#{post.id}-#{('000'+idx).slice(-2)}"
+							guid:        p.guid
 							categories:  post.tags
 							author:      post.blog_name
 							date:        post.date
@@ -144,32 +154,38 @@ module.exports = (request, response) ->
 
 				when "link"
 					if post.photos
-						post.photos.forEach (p, idx, arr) ->
-
+						post.photos.map((p, idx, arr) ->
 							titleSuffix = ""
 							if arr.length > 1
 								titleSuffix = " (#{idx+1} of #{arr.length})"
 
+							p.title = post_title.join(" • ") + titleSuffix
+
 							desc = []
+							desc.push img(p.original_size.url, p.original_size.width, p.original_size.height)
 							desc.push("<blockquote><p>#{post.excerpt}</p></blockquote>") if post.excerpt != ''
 							desc.push(post.description) if post.description
 
+							p.desc = [].concat(desc, post_footer).join('\n\n')
+
+							p.guid = p.original_size.url # "#{post.id}-#{('000'+(idx+1)).slice(-4)}"
+
+							p
+
+						).reverse().forEach (p) ->
 							newFeedItem =
-								title:       post_title.join(" • ") + titleSuffix
-								description: [].concat(
-									img(p.original_size.url, p.original_size.width, p.original_size.height),
-									desc,
-									post_footer,
-								).join('\n\n')
+								title:       p.title
+								description: p.desc
 								url:         post.post_url
-								guid:        "#{post.id}-#{('000'+idx).slice(-2)}"
+								guid:        p.guid
 								categories:  post.tags
 								author:      post.blog_name
 								date:        post.date
 
+							feed.item newFeedItem
+
 							console.log "Link post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
 
-							feed.item newFeedItem
 						return
 					else
 						post_content.push "<h3>#{post.title} <a href='#{post.url}'>#</a></h3>"
@@ -242,7 +258,7 @@ module.exports = (request, response) ->
 					post_footer
 				).join("\n\n")
 				url:         post.post_url
-				guid:        "#{post.id}-0001"
+				guid:        post.post_url
 				categories:  post.tags
 				author:      post.blog_name
 				date:        post.date
