@@ -109,9 +109,9 @@ module.exports = (request, response) ->
 			console.log "post.type: #{post.type} -- #{JSON.stringify post, null, '  '}"
 
 			post_footer.push "<p>#{tags.join(", ")}</p>" if tags.length > 0
-			post_footer.push "Source: <a href='#{post.source_url}'>#{post.source_title}</a>" if post.source_url
-			post_footer.push "&check; Liked" if post.liked
-			post_footer.push "<a href='tumblr://x-callback-url/blog?blogName=#{post.blog_name}&postID=#{post.id}'>View in Tumblr app</a>"
+			post_footer.push "<p>Source: <a href='#{post.source_url}'>#{post.source_title}</a></p>" if post.source_url
+			post_footer.push "<p>&check; Liked</p>" if post.liked
+			post_footer.push "<p><a href='tumblr://x-callback-url/blog?blogName=#{post.blog_name}&postID=#{post.id}'>View in Tumblr app</a></p>"
 
 			switch post.type
 				when "photo"
