@@ -74,7 +74,7 @@ module.exports = (request, response) ->
 			# ttl: "20" # minutes
 		})
 
-		results.posts.forEach (post) ->
+		results.posts.forEach (post, idx, arr) ->
 			console.log "============"
 			console.log "#{post.id}"
 
@@ -106,7 +106,8 @@ module.exports = (request, response) ->
 				else
 					post_title.push "#{post.blog_name}"
 
-			console.log "post.type: #{post.type} -- #{JSON.stringify post, null, '  '}"
+			# console.log "post.type: #{post.type} -- #{JSON.stringify post, null, '  '}"
+			console.log "post.type: #{post.type} (#{idx+1} of #{arr.length})"
 
 			post_footer.push '<hr>'
 			post_footer.push '<p>' + howmany(post.note_count, "note") + '</p>'
@@ -149,10 +150,12 @@ module.exports = (request, response) ->
 
 						feed.item newFeedItem
 
-						console.log "Photo post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
+						# console.log "Photo post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
 					return
 
 				when "link"
+					desc = "#{post.description}".trim()
+
 					if post.photos
 						post.photos.map((p, idx, arr) ->
 							titleSuffix = ""
@@ -161,16 +164,18 @@ module.exports = (request, response) ->
 
 							p.title = post_title.join(" • ") + titleSuffix
 
-							desc = []
-							desc.push img(p.original_size.url, p.original_size.width, p.original_size.height)
-							desc.push("<blockquote><p>#{post.excerpt}</p></blockquote>") if post.excerpt != ''
-							desc.push(post.description) if post.description
-
-							p.desc = [].concat(desc, post_footer).join('\n\n')
+							p.desc = [].concat(
+								img(p.original_size.url, p.original_size.width, p.original_size.height),
+								if "#{post.excerpt}".trim() != '' then "<blockquote><p>#{post.excerpt}</p></blockquote>" else []
+								desc,
+								post_footer
+							).join('\n\n')
 
 							p.guid = p.original_size.url # "#{post.id}-#{('000'+(idx+1)).slice(-4)}"
 
 							p
+
+							console.log " - #{p.guid}"
 
 						).reverse().forEach (p) ->
 							newFeedItem =
@@ -184,12 +189,11 @@ module.exports = (request, response) ->
 
 							feed.item newFeedItem
 
-							console.log "Link post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
+							# console.log "Link post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
 
 						return
 					else
-						post_content.push "<h3>#{post.title} <a href='#{post.url}'>#</a></h3>"
-						post_content.push photos if photos
+						post_content.push "<h3>#{post_title} <a href='#{post.url}'>#</a></h3>"
 						post_content.push desc if desc != ""
 
 				when "text"
