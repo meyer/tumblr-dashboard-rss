@@ -53,6 +53,13 @@ getDashboardPosts = (postCount = 60) ->
 		# Turn array of arrays into a single array
 		Array.prototype.concat.apply([], posts)
 
+feed = null
+
+mkFeedItem = (item) ->
+	# console.log(JSON.stringify(item, null, '  '))
+	console.log " - Feed item: #{item.title} (#{item.date})"
+
+	feed.item(item)
 
 module.exports = (request, response) ->
 	console.log "============"
@@ -76,7 +83,7 @@ module.exports = (request, response) ->
 
 		results.posts.forEach (post, idx, arr) ->
 			console.log "============"
-			console.log "#{post.id}"
+			console.log "Post ID: #{post.id}"
 
 			post_title = []
 			post_content = []
@@ -136,21 +143,22 @@ module.exports = (request, response) ->
 						# "#{post.id}-#{('000'+(idx+1)).slice(-4)}"
 						p.guid = p.original_size.url
 
+						post_date = new Date(post.date)
+						p.date = new Date(post_date.getTime() + idx * 1000)
+
 						p
 
 					).reverse().forEach (p) ->
-						newFeedItem =
+						mkFeedItem {
 							title:       p.title
 							description: p.desc
 							url:         post.post_url
 							guid:        p.guid
 							categories:  post.tags
 							author:      post.blog_name
-							date:        post.date
+							date:        p.date
+						}
 
-						feed.item newFeedItem
-
-						# console.log "Photo post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
 					return
 
 				when "link"
@@ -173,23 +181,21 @@ module.exports = (request, response) ->
 
 							p.guid = p.original_size.url # "#{post.id}-#{('000'+(idx+1)).slice(-4)}"
 
+							post_date = new Date(post.date)
+							p.date = new Date(post_date.getTime() + idx * 1000)
+
 							p
 
-							console.log " - #{p.guid}"
-
 						).reverse().forEach (p) ->
-							newFeedItem =
+							mkFeedItem {
 								title:       p.title
 								description: p.desc
 								url:         post.post_url
 								guid:        p.guid
 								categories:  post.tags
 								author:      post.blog_name
-								date:        post.date
-
-							feed.item newFeedItem
-
-							# console.log "Link post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
+								date:        p.date
+							}
 
 						return
 					else
@@ -255,7 +261,7 @@ module.exports = (request, response) ->
 					post_content.push "#{ucfirst post.type} posts not supported (yet!)"
 
 
-			feed.item
+			mkFeedItem {
 				title:       post_title.join(" • ")
 				description: [].concat(
 					post_content,
@@ -266,8 +272,7 @@ module.exports = (request, response) ->
 				categories:  post.tags
 				author:      post.blog_name
 				date:        post.date
-
-			console.log post_title.join(" • ")
+			}
 
 		response.set "Content-Type", "text/xml; charset=utf-8"
 		response.send feed.xml()
