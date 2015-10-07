@@ -4,9 +4,21 @@ RSVP = require "rsvp"
 fs = require "fs"
 moment = require 'moment'
 
-{ucfirst, img, howmany} = require("../utils")
+{ucfirst, img, howmany, getTimeDiffString} = require("../utils")
 
-getFlickrImageURL = (o) ->
+Flickr = require "flickrapi"
+flickrOptions = {
+	nobrowser: true
+	api_key: process.env.FLICKR_API_KEY
+	secret: process.env.FLICKR_API_SECRET
+	access_token: process.env.FLICKR_ACCESS_TOKEN
+	access_token_secret: process.env.FLICKR_ACCESS_TOKEN_SECRET
+}
+
+# for Moment
+niceDateStringFormat = 'MMMM Do YYYY [at] h:mm:ssa'
+
+getFlickrImageURL = (p) ->
 	###
 	Image Sizes
 	===========
@@ -78,72 +90,83 @@ getFlickrImageURL = (o) ->
 
 	###
 
-	"https://farm#{o.farm}.staticflickr.com/#{o.server}/#{o.id}_#{o.secret}_#{imageSize}.jpg"
+	"https://farm#{p.farm}.staticflickr.com/#{p.server}/#{p.id}_#{p.secret}_#{imageSize}.jpg"
 
-getBuddyIconURL = (o) ->
-	unless o.iconserver && o.iconserver > 0
+getBuddyIconURL = (p) ->
+	unless p.iconserver && p.iconserver > 0
 		return 'https://www.flickr.com/images/buddyicon.gif'
-	"http://farm#{o.iconfarm}.staticflickr.com/#{o.iconserver}/buddyicons/#{o.owner}.jpg"
+	"http://farm#{p.iconfarm}.staticflickr.com/#{p.iconserver}/buddyicons/#{p.owner}.jpg"
 
-getPhotoPageURL = (o) ->
-	"https://www.flickr.com/photos/#{o.owner}/#{o.id}"
+getPhotoPageURL = (p) ->
+	"https://www.flickr.com/photos/#{p.pathalias || p.owner}/#{p.id}"
 
-getUserRepresentation = (o) ->
-	"<table><tr><td style='vertical-align:middle'>#{img(getBuddyIconURL(o), 24, 24)}</td><th style='vertical-align:middle'>#{getUserName(o)}</th></tr></table>"
+getUserURL = (p) ->
+	"https://www.flickr.com/photos/#{p.pathalias || p.owner}/"
 
-getDescription = (o) ->
-	if o.description?._content?.trim() != ''
-		"#{getUserRepresentation(o)}\n<p>#{o.description._content.trim()}</p>"
+getUserRepresentation = (p) ->
+	"#{img(getBuddyIconURL(p), 24, 24, {style: "vertical-align: middle"})} #{getUserName(p, true)}"
+
+getDescription = (p) ->
+	if p.description?._content?.trim() != ''
+		"<blockquote><p>#{p.description._content.trim()}</p></blockquote>"
 	else
-		"#{getUserRepresentation(o)}\n<!-- No description set -->"
+		"<!-- No description set -->"
 
-getUserName = (o) ->
-	if o.username && o.username != o.ownername
-		return "#{o.ownername} (#{o.username})"
-	o.ownername
+getUserName = (p, withLink=false) ->
+	pathAlias = p.pathalias || p.ownername
+	if withLink
+		pathAlias = "<a href='#{getUserURL(p)}'>#{pathAlias}</a>"
 
-getTitle = (o) ->
-	if o.title.trim() != ''
-		return "#{ucfirst o.media}: #{o.title.trim()}"
-	"#{ucfirst o.media}: #{o.username}"
+	if p.realname
+		"#{p.realname} (#{pathAlias})"
+	else
+		if p.ownername == p.pathalias
+			pathAlias
+		else
+			"#{p.ownername} (#{pathAlias})"
 
-Flickr = require "flickrapi"
-flickrOptions = {
-	nobrowser: true
-	api_key: process.env.FLICKR_API_KEY
-	secret: process.env.FLICKR_API_SECRET
-	access_token: process.env.FLICKR_ACCESS_TOKEN
-	access_token_secret: process.env.FLICKR_ACCESS_TOKEN_SECRET
-}
+getTitle = (p) ->
+	if p.title.trim() != ''
+		return "#{getUserName(p)}: #{p.title.trim()}"
+	"#{getUserName(p)}: [no title]"
 
-niceDateStringFormat = 'MMMM Do YYYY [at] h:mm:ssa'
-
-getTagLinks = (o) ->
-	if o.tags.trim() == '' then return false
-	o.tags.split(' ').map((t) ->
+getTagLinks = (p) ->
+	if p.tags.trim() == '' then return false
+	p.tags.split(' ').map((t) ->
 		"<a href='https://www.flickr.com/search/?tags=#{t}'>##{t}</a>"
 	).join(', ')
 
 getFooter = (p) ->
 	ret = []
 	if tagLinks = getTagLinks(p)
-		ret.push "<tr><th align='left'>Tags</th><td>#{tagLinks}</td></tr>"
+		ret.push "<p>Tags: #{tagLinks}</p>"
 
-	ret.push "<tr><th align='left'>Taken</th><td>#{moment(new Date(p.datetaken)).format(niceDateStringFormat)}</td></tr>"
-	ret.push "<tr><th align='left'>Uploaded</th><td>#{moment(new Date(p.dateupload * 1000)).format(niceDateStringFormat)}</td></tr>"
+	takenDate = moment(new Date(p.datetaken))
+	uploadDate = moment(new Date(p.dateupload * 1000))
 
-	return "<table>#{ret.join('\n')}</table>"
+	# diff = getTimeDiffString(takenDate.diff(uploadDate), 'later')
 
+	ret.push "<p>Uploaded by #{getUserRepresentation(p)}</p>"
+	ret.push "<p>Taken on #{takenDate.format(niceDateStringFormat)} (local time)</p>"
+	ret.push "<p>Uploaded on #{uploadDate.format(niceDateStringFormat)}</p>"
+
+	return ret.join('\n')
+
+# TODO: Promise-ify this?
 module.exports = (request, response) ->
 	Flickr.authenticate flickrOptions, (error, flickr) ->
 		options = {
 			count: 50
+			# page: 2
 			# just_friends: false
 			# single_photo: false
 			include_self: false
 
 			# https://www.flickr.com/services/api/flickr.photos.search.html
 			extras: [
+				# Not listed but useful:
+				'realname'
+
 				'description'
 				# 'license'
 				'date_upload'
@@ -151,7 +174,7 @@ module.exports = (request, response) ->
 				'owner_name'
 				'icon_server'
 				# 'original_format'
-				# 'last_update'
+				'last_update'
 				# 'geo'
 				'tags'
 				# 'machine_tags'
@@ -195,7 +218,6 @@ module.exports = (request, response) ->
 					description: [].concat(
 						"<div>#{img(p.url_l, p.width_l, p.height_l)}</div>"
 						getDescription(p)
-						"<hr>"
 						getFooter(p)
 					).join("\n\n")
 					url:         getPhotoPageURL(p)
