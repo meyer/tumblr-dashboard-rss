@@ -1,5 +1,5 @@
 moment = require 'moment'
-{ucfirst, img, howmany, getTimeDiffString} = require("./utils")
+{ucfirst, img, howmany, getTimeDiffString} = require("./index")
 
 niceDateStringFormat = 'MMMM Do YYYY [at] h:mm:ssa'
 

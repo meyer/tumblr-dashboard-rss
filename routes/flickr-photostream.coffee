@@ -3,8 +3,8 @@ RSS = require "rss"
 RSVP = require "rsvp"
 fs = require "fs"
 
-{ucfirst, img, howmany, getTimeDiffString} = require("../utils")
-{getTitle, getDescription, getFooter, getPhotoPageURL, getUserName} = require('../utils-flickr')
+{ucfirst, img, howmany, getTimeDiffString} = require('../utils')
+{getTitle, getDescription, getFooter, getPhotoPageURL, getUserName} = require('../utils/flickr')
 
 Flickr = require "flickrapi"
 flickrOptions = {

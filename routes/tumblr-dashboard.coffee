@@ -13,7 +13,7 @@ user = new User({
 	token_secret:    process.env.TUMBLR_TOKEN_SECRET
 })
 
-{ucfirst, img, howmany} = require("../utils")
+{ucfirst, img, howmany} = require('../utils')
 
 getBlogInfo = ->
 	new RSVP.Promise (resolve, reject) ->

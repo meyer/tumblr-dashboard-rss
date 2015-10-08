@@ -24,3 +24,5 @@ module.exports.getTimeDiffString = (t, p) ->
 	if (t /= 24)   <  7 then return "#{Math.round(t * 10) / 10} days#{pfx}"
 
 	return "#{Math.round(t / 7 * 10) / 10} weeks#{pfx}"
+
+# module.exports.flickr = require './flickr'
