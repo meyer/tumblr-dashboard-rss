@@ -12,6 +12,12 @@ user = new User({
 
 {ucfirst, img, howmany} = require("../utils")
 
+feed = null
+
+mkFeedItem = (item) ->
+	console.log " - Feed item: #{item.title} (#{item.date})"
+	feed.item(item)
+
 getBlogInfo = ->
 	new RSVP.Promise (resolve, reject) ->
 		user.info (err, response) ->
@@ -62,12 +68,6 @@ module.exports = (request, response) ->
 		if process.env.VERBOSE_MODE
 			fs.writeFile "../likes.json", JSON.stringify(results, null, "  ")
 
-		# response.set "Content-Type", "application/json; charset=utf-8"
-		# response.send JSON.stringify(results, null, '  ')
-		# return
-
-		# console.log JSON.stringify(results.likes, null, '  ')
-
 		feed = new RSS({
 			title: "Tumblr Likes for #{results.userInfo.name}"
 			description: ""
@@ -107,11 +107,7 @@ module.exports = (request, response) ->
 				else
 					post_title.push "#{post.blog_name}"
 
-			console.log "post.type: #{post.type} -- #{JSON.stringify post, null, '  '}"
-
 			like_date = new Date(post.liked_timestamp * 1000)
-
-			console.log "LIKE DATE:", like_date
 
 			switch post.type
 				when "photo"
@@ -120,7 +116,7 @@ module.exports = (request, response) ->
 						if arr.length > 1
 							titleSuffix = " (#{idx+1} of #{arr.length})"
 
-						newFeedItem =
+						mkFeedItem
 							title:       post_title.join(" • ") + titleSuffix
 							description: [
 								img(p.original_size.url, p.original_size.width, p.original_size.height)
@@ -134,10 +130,6 @@ module.exports = (request, response) ->
 							author:      post.blog_name
 							date:        like_date
 
-						feed.item newFeedItem
-
-						console.log "Photo post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
-
 
 
 				when "link"
@@ -148,7 +140,7 @@ module.exports = (request, response) ->
 							if arr.length > 1
 								titleSuffix = " (#{idx+1} of #{arr.length})"
 
-							newFeedItem =
+							mkFeedItem
 								title:       post_title.join(" • ") + titleSuffix
 								description: [].concat(
 									img(p.original_size.url, p.original_size.width, p.original_size.height),
@@ -161,10 +153,6 @@ module.exports = (request, response) ->
 								categories:  post.tags
 								author:      post.blog_name
 								date:        like_date
-
-							console.log "Link post -- individual image", JSON.stringify(newFeedItem, null, '  '), '\n\n'
-
-							feed.item newFeedItem
 
 
 				# when "video"

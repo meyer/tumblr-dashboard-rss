@@ -56,9 +56,7 @@ getDashboardPosts = (postCount = 60) ->
 feed = null
 
 mkFeedItem = (item) ->
-	# console.log(JSON.stringify(item, null, '  '))
 	console.log " - Feed item: #{item.title} (#{item.date})"
-
 	feed.item(item)
 
 module.exports = (request, response) ->
@@ -74,8 +72,8 @@ module.exports = (request, response) ->
 
 		feed = new RSS({
 			title: "Tumblr Dashboard for #{results.userInfo.name}"
-			description: ""
-			feed_url: "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-dashboard.rss"
+			description: "#{results.userInfo.name} follows some interesting people. this is the stuff they post on Tumblr."
+			feed_url: "http://#{request.hostname}#{request.url}"
 			site_url: "http://www.tumblr.com/dashboard"
 			# pubDate: result.posts[0].date
 			# ttl: "20" # minutes
@@ -113,7 +111,6 @@ module.exports = (request, response) ->
 				else
 					post_title.push "#{post.blog_name}"
 
-			# console.log "post.type: #{post.type} -- #{JSON.stringify post, null, '  '}"
 			console.log "post.type: #{post.type} (#{idx+1} of #{arr.length})"
 
 			post_footer.push '<hr>'

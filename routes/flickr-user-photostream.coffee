@@ -24,12 +24,26 @@ mkFeedItem = (item) ->
 # TODO: Promise-ify this?
 module.exports = (request, response) ->
 	Flickr.authenticate flickrOptions, (error, flickr) ->
-		contactsPhotosOptions = {
-			count: 50
-			# page: 2
-			# just_friends: false
-			# single_photo: false
-			include_self: false
+		userPhotostreamOptions = {
+			# Max 100
+			per_page: 100
+
+			user_id: request.params.nsid
+
+			# page: 1
+
+			###
+			content type
+			============
+			1 for photos only
+			2 for screenshots only
+			3 for 'other' only
+			4 for photos and screenshots
+			5 for screenshots and 'other'
+			6 for photos and 'other'
+			7 for photos, screenshots, and 'other' (all)
+			###
+			content_type: 7
 
 			# https://www.flickr.com/services/api/flickr.photos.search.html
 			extras: [
@@ -64,22 +78,24 @@ module.exports = (request, response) ->
 			]
 		}
 
-		flickr.photos.getContactsPhotos contactsPhotosOptions, (error, data) ->
+		flickr.people.getPhotos userPhotostreamOptions, (error, data) ->
 			if error
 				response.status 500
 				response.send error
 				return
 
-			unless data.photos?.photo?
+			if data.photos?.photo?
+				console.log "Loaded #{data.photos.photo.length} photos for #{request.params.nsid}"
+			else
 				response.status 404
 				response.send 'Photo object is not set'
 				return
 
 			feed = new RSS({
-				title: "Flickr Photostream"
-				description: "All yr photos broh"
+				title: "Flickr Photostream for #{request.params.nsid}"
+				description: "All photos taken by #{request.params.nsid}"
 				feed_url: "http://#{request.hostname}#{request.url}"
-				site_url: "http://www.flickr.com"
+				site_url: "http://www.flickr.com/photos/#{request.params.nsid}"
 				# pubDate: result.posts[0].date
 				# ttl: "20" # minutes
 			})

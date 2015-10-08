@@ -1,17 +1,17 @@
-express = require "express"
+express = require 'express'
 server = express()
 router = express.Router()
-expressListRoutes = require 'express-list-routes'
+colors = require 'colors'
 
 require('dotenv').load()
 
 server.use('/', router)
 
 routes = {
-	empty: require("./routes/empty")
-	tumblrDash: require('./routes/tumblr-dashboard')
-	tumblrLikes: require("./routes/tumblr-liked-images")
-	flickrPhotostream: require("./routes/flickr-photostream")
+	"/#{process.env.FLICKR_API_KEY}/flickr-photostream.rss":      './routes/flickr-photostream'
+	"/#{process.env.FLICKR_API_KEY}/flickr-user/:nsid/feed.rss":  './routes/flickr-user-photostream'
+	"/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-dashboard.rss":   './routes/tumblr-dashboard'
+	"/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-likes.rss":       './routes/tumblr-liked-images'
 }
 
 server.set "port", (process.env.PORT || 6969)
@@ -20,16 +20,18 @@ router.route('/').get (request, response) ->
 	response.set "Content-Type", "text/plain; charset=utf-8"
 	response.send "routes: #{Object.keys(routes).join(", ")}"
 
-router.route("/#{process.env.FLICKR_API_KEY}/flickr-photostream.rss").get(routes.flickrPhotostream)
-router.route("/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-dashboard.rss").get(routes.tumblrDash)
-router.route("/#{process.env.TUMBLR_CONSUMER_KEY}/tumblr-likes.rss").get(routes.tumblrLikes)
-router.route("/#{process.env.TUMBLR_CONSUMER_KEY}.rss").get(routes.empty)
-
 localURL = "http://localhost:#{server.get("port")}"
 remoteURL = "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com"
 
-expressListRoutes({ prefix:  localURL },  'Local routes:', router )
-expressListRoutes({ prefix: remoteURL }, 'Remote routes:', router )
+console.log ''
 
-server.listen server.get("port"), ->
-	console.log "============"
+for route, handler of routes
+	console.log "  " + "#{handler}".underline.green
+	console.log "  " + "#{localURL}#{route}"
+	console.log "  " + "#{remoteURL}#{route}"
+	console.log ''
+	server.get route, require(handler)
+
+console.log "============"
+
+server.listen server.get("port")
