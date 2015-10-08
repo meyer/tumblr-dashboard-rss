@@ -73,7 +73,7 @@ module.exports = (request, response) ->
 		feed = new RSS({
 			title: "Tumblr Dashboard for #{results.userInfo.name}"
 			description: "#{results.userInfo.name} follows some interesting people. this is the stuff they post on Tumblr."
-			feed_url: "http://#{request.hostname}#{request.url}"
+			feed_url: "http://#{request.headers.host}#{request.url}"
 			site_url: "http://www.tumblr.com/dashboard"
 			# pubDate: result.posts[0].date
 			# ttl: "20" # minutes

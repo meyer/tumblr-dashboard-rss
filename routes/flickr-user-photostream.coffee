@@ -30,6 +30,8 @@ module.exports = (request, response) ->
 
 			user_id: request.params.nsid
 
+			authenticated: true
+
 			# page: 1
 
 			###
@@ -94,7 +96,7 @@ module.exports = (request, response) ->
 			feed = new RSS({
 				title: "Flickr Photostream for #{request.params.nsid}"
 				description: "All photos taken by #{request.params.nsid}"
-				feed_url: "http://#{request.hostname}#{request.url}"
+				feed_url: "http://#{request.headers.host}#{request.url}"
 				site_url: "http://www.flickr.com/photos/#{request.params.nsid}"
 				# pubDate: result.posts[0].date
 				# ttl: "20" # minutes

@@ -70,7 +70,9 @@ module.exports = (request, response) ->
 				response.send error
 				return
 
-			unless data.photos?.photo?
+			if data.photos?.photo?
+				console.log "Loaded #{data.photos.photo.length} photos"
+			else
 				response.status 404
 				response.send 'Photo object is not set'
 				return
@@ -78,7 +80,7 @@ module.exports = (request, response) ->
 			feed = new RSS({
 				title: "Flickr Photostream"
 				description: "All yr photos broh"
-				feed_url: "http://#{request.hostname}#{request.url}"
+				feed_url: "http://#{request.headers.host}#{request.url}"
 				site_url: "http://www.flickr.com"
 				# pubDate: result.posts[0].date
 				# ttl: "20" # minutes
