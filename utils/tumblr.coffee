@@ -1,10 +1,11 @@
-tumblr = require "tumblr"
-RSVP = require "rsvp"
-RSS = require 'rss'
+tumblr = require 'tumblr'
+RSVP = require 'rsvp'
+lodash = require 'lodash'
 
-{ucfirst, img, howmany, getTimeDiffString} = require('./index')
+{ucfirst, img, howmany, getTimeDiffString, padLeft} = require('./index')
 
 tumblrConfig = require '../config/tumblr'
+
 user = new tumblr.User(tumblrConfig)
 
 module.exports.getBlogInfo = ->
@@ -27,8 +28,8 @@ module.exports.getPosts = (src, postCount = 60) ->
 
   switch src
     when 'dashboard'
-      typeSingular = 'DASH POST'
-      typePlural = 'DASH POSTS'
+      typeSingular = 'DASHBOARD POST'
+      typePlural = 'DASHBOARD POSTS'
       responseKey = 'posts'
     when 'likes'
       typeSingular = 'LIKED POST'
@@ -40,39 +41,36 @@ module.exports.getPosts = (src, postCount = 60) ->
   console.log "POSTS TO LOAD: #{howmany postCount, "post"} in #{howmany ic, "batch", "batches"}"
 
   # Return array of promises
-  RSVP.all([1..ic].map (idx) ->
+  promises = [1..ic].map (idx) ->
     batchSize = if idx == ic && mod != 0 then mod else limit
+
     console.log "* LOADING #{howmany batchSize, typeSingular, typePlural}"
-    new RSVP.Promise (resolve, reject) ->
-      user[src] {
+
+    return new RSVP.Promise (resolve, reject) ->
+      options = {
         reblog_info: true
         # notes_info: true
         limit: batchSize
         offset: offset
-      }, (error, response) ->
+      }
+
+      user[src] options, (error, response) ->
         if error
           reject(error)
+          throw error
         else
           resolve(response[responseKey])
 
       offset += batchSize
 
-  ).then (posts) ->
-    # Turn array of arrays into a single array
+  RSVP.all(promises).then (posts) ->
     Array.prototype.concat.apply([], posts)
 
-feed = null
+module.exports.buildRSSItems = (posts, rssConfig={showLikeStatus: true}) ->
+  feedItems = posts.map (post, idx, arr) ->
+    item = null
 
-mkFeedItem = (item) ->
-  console.log " - Feed item: #{item.title} (#{item.date})"
-  feed.item(item)
-
-module.exports.buildRSSFeed = (rssConfig, posts) ->
-  feed = new RSS(rssConfig)
-
-  posts.forEach (post, idx, arr) ->
-    console.log "============"
-    console.log "Post ID: #{post.id}"
+    console.log "- Post #{lodash.padLeft idx+1, "#{arr.length}".length, ' '} of #{arr.length}: #{lodash.padLeft post.id, 13, ' '} (#{post.type})"
 
     post_title = []
     post_content = []
@@ -92,8 +90,8 @@ module.exports.buildRSSFeed = (rssConfig, posts) ->
       reblog_src = post.reblogged_from_name
       if post.reblogged_root_name != post.reblogged_from_name
         reblog_src = "#{post.reblogged_from_name} … #{post.reblogged_root_name}"
-      else
-        console.log "post author is the same as reblogger"
+      # else
+      #   console.log "post author is the same as reblogger"
 
       post_title.push "#{post.blog_name} ⇄ #{reblog_src}"
     else
@@ -102,83 +100,56 @@ module.exports.buildRSSFeed = (rssConfig, posts) ->
       else
         post_title.push "#{post.blog_name}"
 
-    console.log "post.type: #{post.type} (#{idx+1} of #{arr.length})"
-
-    post_footer.push '<hr>'
-    post_footer.push '<p>' + howmany(post.note_count, "note") + '</p>'
+    post_footer.push "<p>#{howmany(post.note_count, "note")}</p>"
     post_footer.push "<p>#{tags.join(", ")}</p>" if tags.length > 0
     post_footer.push "<p>Source: <a href='#{post.source_url}'>#{post.source_title}</a></p>" if post.source_url
-    post_footer.push "<p>&check; Liked</p>" if post.liked
+    post_footer.push "<p>&check; Liked</p>" if post.liked && rssConfig.showLikeStatus
 
     # tumblr://x-callback-url/blog?blogName=tumblr-username
     # tumblr://x-callback-url/blog?blogName=tumblr-username&postID=post-id
     post_footer.push "<p><a href='tumblr://x-callback-url/blog?blogName=#{post.blog_name}&postID=#{post.id}'>View in Tumblr app</a></p>"
 
     switch post.type
-      when "photo"
-        post.photos.map((p, idx, arr) ->
-          titleSuffix = ""
-          if arr.length > 1
-            titleSuffix = " (#{idx+1} of #{arr.length})"
+      when "photo", "link"
+        desc = []
 
-          p.title = post_title.join(" • ") + titleSuffix
+        if post.caption then desc.push "#{post.caption}".trim()
 
-          desc = []
-          desc.push img(p.original_size.url, p.original_size.width, p.original_size.height)
-          desc.push(p.caption) if p.caption != ""
-          desc.push(post.caption) if post.caption != ""
+        # Link posts
+        if post.description then desc.push "#{post.description}".trim()
+        if post.excerpt then desc.push "#{post.excerpt}".trim()
 
-          p.desc = [].concat(desc, post_footer).join('\n\n')
-
-          # p.image_permalink ???
-          # "#{post.id}-#{('000'+(idx+1)).slice(-4)}"
-          p.guid = p.original_size.url
-
-          post_date = new Date(post.date)
-          p.date = new Date(post_date.getTime() + idx * 1000)
-
-          p
-
-        ).reverse().forEach (p) ->
-          mkFeedItem {
-            title:       p.title
-            description: p.desc
-            url:         post.post_url
-            guid:        p.guid
-            categories:  post.tags
-            author:      post.blog_name
-            date:        p.date
-          }
-
-        return
-
-      when "link"
-        desc = "#{post.description}".trim()
 
         if post.photos
-          post.photos.map((p, idx, arr) ->
+          return post.photos.map((p, idx, arr) ->
             titleSuffix = ""
             if arr.length > 1
               titleSuffix = " (#{idx+1} of #{arr.length})"
 
             p.title = post_title.join(" • ") + titleSuffix
 
+            # Photo posts
+            caption = if p.caption && p.caption != '' then "<p>#{p.caption.trim()}</p>" else []
+
             p.desc = [].concat(
-              img(p.original_size.url, p.original_size.width, p.original_size.height),
-              if "#{post.excerpt}".trim() != '' then "<blockquote><p>#{post.excerpt}</p></blockquote>" else []
-              desc,
+              '<div>'
+              img(p.original_size.url, p.original_size.width, p.original_size.height)
+              '</div>'
+              '<blockquote>'
+              caption
+              desc
+              '</blockquote>'
               post_footer
             ).join('\n\n')
 
-            p.guid = p.original_size.url # "#{post.id}-#{('000'+(idx+1)).slice(-4)}"
+            p.guid = p.original_size.url
 
             post_date = new Date(post.date)
             p.date = new Date(post_date.getTime() + idx * 1000)
 
             p
-
-          ).reverse().forEach (p) ->
-            mkFeedItem {
+          ).reverse().map (p) ->
+            {
               title:       p.title
               description: p.desc
               url:         post.post_url
@@ -187,19 +158,26 @@ module.exports.buildRSSFeed = (rssConfig, posts) ->
               author:      post.blog_name
               date:        p.date
             }
-
-          return
         else
-          post_content.push "<h3>#{post_title} <a href='#{post.url}'>#</a></h3>"
-          post_content.push desc if desc != ""
+          console.log "!!! #{post.type} without photos"
+          if post.type == 'link'
+            post_content.push "<h3>#{post_title.join(" • ")} <a href='#{post.url}'>#</a></h3>"
+
+            post_content.push '<blockquote>'
+            post_content.push desc
+            post_content.push '</blockquote>'
+
+          else
+            post_content.push "<h3>Empty Photo Post :....(</h3>"
 
       when "text"
         post_content.push post.body
 
       when "quote"
-        post_content.push "#{post.text}"
-        post_content.push "<br><br>"
-        post_content.push "&mdash;&thinsp;#{post.source}"
+        post_content.push '<blockquote>'
+        post_content.push "<p>#{post.text}</p>"
+        post_content.push "<p>&mdash;&thinsp;#{post.source}</p>"
+        post_content.push '</blockquote>'
 
       when "chat"
         post_content.push "<table>"
@@ -207,7 +185,7 @@ module.exports.buildRSSFeed = (rssConfig, posts) ->
         post.dialogue.forEach (line) ->
           post_content.push """
           <tr>
-            <th>#{line.name}</th>
+            <th align="left">#{line.name}</th>
             <td>#{line.phrase}</td>
           </tr>
           """
@@ -216,34 +194,26 @@ module.exports.buildRSSFeed = (rssConfig, posts) ->
 
       when "audio"
         post_content.push post.player
-
-        # post_content.push """
-        # <p>#{post.source_title} <a href="#{post.source_url}">#</a></p>
-        # """
-
         post_content.push post.caption
 
       when "video"
         post_content.push post.player.pop().embed_code
 
-        # post_content.push """
-        # <p>#{post.source_title} <a href="#{post.source_url}">#</a></p>
-        # """
-
       when "answer"
-        asker = """
-        <a href="#{post.asking_url}">
-          <img src="http://api.tumblr.com/v2/blog/#{post.asking_name}.tumblr.com/avatar/128" height="128" width="128">
-          #{post.asking_name}</a>
-        """
+        asker = [
+          "<a href='#{post.asking_url}'>"
+          img("http://api.tumblr.com/v2/blog/#{post.asking_name}.tumblr.com/avatar/128", 128, 128, {style: "vertical-align: middle"}),
+          post.asking_name
+          '</a>'
+        ].join('')
 
         if post.asking_name == "Anonymous"
-          asker = """
-          <img src="https://secure.assets.tumblr.com/images/anonymous_avatar_128.gif" height="128" width="128">
-          #{post.asking_name}
-          """
+          asker = [
+            img("https://secure.assets.tumblr.com/images/anonymous_avatar_128.gif", 128, 128, {style: "vertical-align: middle"})
+            post.asking_name
+          ].join('')
 
-        post_content.push "<h3>#{asker}: #{post.question}</h3>"
+        post_content.push "<blockquote><p>#{asker}: #{post.question}</p></blockquote>"
         post_content.push post.answer
 
 
@@ -252,7 +222,7 @@ module.exports.buildRSSFeed = (rssConfig, posts) ->
         post_content.push "#{ucfirst post.type} posts not supported (yet!)"
 
 
-    mkFeedItem {
+    {
       title:       post_title.join(" • ")
       description: [].concat(
         post_content,
@@ -265,4 +235,4 @@ module.exports.buildRSSFeed = (rssConfig, posts) ->
       date:        post.date
     }
 
-  feed
+  Array.prototype.concat.apply([], feedItems)

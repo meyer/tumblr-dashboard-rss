@@ -1,5 +1,5 @@
 moment = require 'moment'
-{ucfirst, img, howmany, getTimeDiffString} = require("./index")
+{img} = require("./index")
 
 niceDateStringFormat = 'MMMM Do YYYY [at] h:mm:ssa'
 
@@ -137,15 +137,18 @@ getFooter = (p) ->
 
   return ret.join('\n')
 
-module.exports = {
-  getFlickrImageURL: getFlickrImageURL
-  getBuddyIconURL: getBuddyIconURL
-  getPhotoPageURL: getPhotoPageURL
-  getUserURL: getUserURL
-  getUserRepresentation: getUserRepresentation
-  getDescription: getDescription
-  getUserName: getUserName
-  getTitle: getTitle
-  getTagLinks: getTagLinks
-  getFooter: getFooter
-}
+module.exports.buildRSSItems = (photos, rssConfig={}) ->
+  photos.map (photo) ->
+    {
+      title:       getTitle(photo),
+      description: [].concat(
+        "<div>#{img(photo.url_l, photo.width_l, photo.height_l)}</div>"
+        getDescription(photo)
+        getFooter(photo)
+      ).join('\n\n')
+      url:         getPhotoPageURL(photo)
+      guid:        photo.id
+      categories:  photo.tags.split(' ')
+      author:      getUserName(photo)
+      date:        new Date(photo.dateupload * 1000)
+    }
