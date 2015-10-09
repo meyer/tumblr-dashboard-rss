@@ -21,6 +21,8 @@ server.use '/', (request, response, next) ->
 remoteURL = "http://#{process.env.HEROKU_SUBDOMAIN}.herokuapp.com/"
 localURL = "http://localhost:#{server.get("port")}/"
 
+isLocal = /\.local$/.test(require('os').hostname())
+
 routePrefixes =
   flickr: process.env.FLICKR_API_KEY
   tumblr: process.env.TUMBLR_CONSUMER_KEY
@@ -31,16 +33,13 @@ console.log ''
 for category, routeObj of routes
   for route, handler of routeObj
     remotePrefix = if routePrefixes[category] then "#{routePrefixes[category]}/" else ''
-    # i am good at javascropt
-    um = if process.env.DEV_MODE then '  ' else '> '
-    uh = if process.env.DEV_MODE then '> ' else '  '
 
     console.log "  #{handler.underline.green}"
-    console.log "  #{um}#{remoteURL}#{remotePrefix}#{route}"
-    console.log "  #{uh}#{localURL}#{route}"
+    console.log "  #{isLocal && ' ' || '>'} #{remoteURL}#{remotePrefix}#{route}"
+    console.log "  #{isLocal && '>' || ' '} #{localURL}#{route}"
     console.log ''
 
-    if process.env.DEV_MODE
+    if isLocal
       server.get "/#{route}", require("./routes/#{handler}")
     else
       server.get "/#{remotePrefix}#{route}", require("./routes/#{handler}")
