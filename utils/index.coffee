@@ -25,4 +25,29 @@ module.exports.getTimeDiffString = (t, p) ->
 
   return "#{Math.round(t / 7 * 10) / 10} weeks#{pfx}"
 
+# look at me, parsing HTML with regular expressions
+module.exports.wrapHTMLMaybe = (text, tag) ->
+  text = "#{text}".trim()
+
+  # Text starts/ends with HTML tags
+  rStart = /^\<(\w+)\>/
+  rEnd = /\<\/(\w+)\>$/
+
+  # End tags exist in text
+  rTag = /\<\/(?:p|a|em|strong|blockquote|h1|h2|h3|h4|h5|h6)\>/
+
+  openingTag = text.match(rStart)
+  closingTag = text.match(rEnd)
+
+  console.log 'Text:', text
+  console.log '- tag:', tag
+  console.log '- openingTag:', openingTag && openingTag[1] || '(none)'
+  console.log '- closingTag:', closingTag && closingTag[1] || '(none)'
+
+  # if rTag.test(text)
+  if openingTag && openingTag[1] == tag
+    return text
+  else
+    return "<#{tag}>\n\n#{text}\n\n</#{tag}>"
+
 # module.exports.flickr = require './flickr'

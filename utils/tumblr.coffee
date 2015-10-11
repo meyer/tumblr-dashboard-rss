@@ -2,7 +2,7 @@ tumblr = require 'tumblr'
 RSVP = require 'rsvp'
 lodash = require 'lodash'
 
-{ucfirst, img, howmany, getTimeDiffString, padLeft} = require('./index')
+{ucfirst, img, howmany, getTimeDiffString, padLeft, wrapHTMLMaybe} = require('./index')
 
 tumblrConfig = require '../config/tumblr'
 
@@ -59,6 +59,7 @@ module.exports.getPosts = (src, postCount = 60) ->
           reject(error)
           throw error
         else
+          # Extract responseKey from response object
           resolve(response[responseKey])
 
       offset += batchSize
@@ -66,15 +67,24 @@ module.exports.getPosts = (src, postCount = 60) ->
   RSVP.all(promises).then (posts) ->
     Array.prototype.concat.apply([], posts)
 
-module.exports.buildRSSItems = (posts, rssConfig={showLikeStatus: true}) ->
-  feedItems = posts.map (post, idx, arr) ->
+module.exports.buildRSSItems = (results) ->
+  showLikeStatus = !results.likes?
+
+  what = (results.likes && 'likes') || (results.posts && 'posts')
+
+  throw 'buildRSSItem only supports liked_posts and posts' unless what
+
+  console.log "LOADING #{results[what].length} #{what.toUpperCase()}"
+  console.log '===================='
+
+  feedItems = results[what].map (post, idx, arr) ->
     item = null
 
     console.log "- Post #{lodash.padLeft idx+1, "#{arr.length}".length, ' '} of #{arr.length}: #{lodash.padLeft post.id, 13, ' '} (#{post.type})"
 
     post_title = []
     post_content = []
-    post_footer = []
+    post_footer = ['<hr>']
 
     tags = post.tags.map (t) ->
       "<a href=\"http://#{post.blog_name}.tumblr.com/tagged/#{encodeURIComponent t}\">##{t}</a>"
@@ -103,7 +113,7 @@ module.exports.buildRSSItems = (posts, rssConfig={showLikeStatus: true}) ->
     post_footer.push "<p>#{howmany(post.note_count, "note")}</p>"
     post_footer.push "<p>#{tags.join(", ")}</p>" if tags.length > 0
     post_footer.push "<p>Source: <a href='#{post.source_url}'>#{post.source_title}</a></p>" if post.source_url
-    post_footer.push "<p>&check; Liked</p>" if post.liked && rssConfig.showLikeStatus
+    post_footer.push "<p>&check; Liked</p>" if post.liked && showLikeStatus
 
     # tumblr://x-callback-url/blog?blogName=tumblr-username
     # tumblr://x-callback-url/blog?blogName=tumblr-username&postID=post-id
@@ -119,7 +129,6 @@ module.exports.buildRSSItems = (posts, rssConfig={showLikeStatus: true}) ->
         if post.description then desc.push "#{post.description}".trim()
         if post.excerpt then desc.push "#{post.excerpt}".trim()
 
-
         if post.photos
           return post.photos.map((p, idx, arr) ->
             titleSuffix = ""
@@ -128,24 +137,25 @@ module.exports.buildRSSItems = (posts, rssConfig={showLikeStatus: true}) ->
 
             p.title = post_title.join(" • ") + titleSuffix
 
+            photo_desc = desc.slice(0)
+
             # Photo posts
-            caption = if p.caption && p.caption != '' then "<p>#{p.caption.trim()}</p>" else []
+            if p.caption && p.caption != ''
+              photo_desc.unshift wrapHTMLMaybe(p.caption, 'p')
 
             p.desc = [].concat(
               '<div>'
               img(p.original_size.url, p.original_size.width, p.original_size.height)
               '</div>'
-              '<blockquote>'
-              caption
-              desc
-              '</blockquote>'
-              post_footer
+              photo_desc
+              if photo_desc.length > 0 then post_footer else post_footer.slice(1, post_footer.length)
             ).join('\n\n')
 
             p.guid = p.original_size.url
+            p.date = new Date(post.date)
 
-            post_date = new Date(post.date)
-            p.date = new Date(post_date.getTime() + idx * 1000)
+            # post_date = new Date(post.date)
+            # p.date = new Date(post_date.getTime() + idx * 1000)
 
             p
           ).reverse().map (p) ->
@@ -161,23 +171,19 @@ module.exports.buildRSSItems = (posts, rssConfig={showLikeStatus: true}) ->
         else
           console.log "!!! #{post.type} without photos"
           if post.type == 'link'
-            post_content.push "<h3>#{post_title.join(" • ")} <a href='#{post.url}'>#</a></h3>"
-
-            post_content.push '<blockquote>'
             post_content.push desc
-            post_content.push '</blockquote>'
+
+            post_content.push "<a href='#{post.url}'>Link</a>"
 
           else
-            post_content.push "<h3>Empty Photo Post :....(</h3>"
+            post_content.push "<p><strong>Empty Photo Post :....(</strong></p>"
 
       when "text"
         post_content.push post.body
 
       when "quote"
-        post_content.push '<blockquote>'
-        post_content.push "<p>#{post.text}</p>"
+        post_content.push wrapHTMLMaybe(post.text, 'p')
         post_content.push "<p>&mdash;&thinsp;#{post.source}</p>"
-        post_content.push '</blockquote>'
 
       when "chat"
         post_content.push "<table>"
@@ -200,20 +206,22 @@ module.exports.buildRSSItems = (posts, rssConfig={showLikeStatus: true}) ->
         post_content.push post.player.pop().embed_code
 
       when "answer"
+        avatarSize = 128
+
         asker = [
           "<a href='#{post.asking_url}'>"
-          img("http://api.tumblr.com/v2/blog/#{post.asking_name}.tumblr.com/avatar/128", 128, 128, {style: "vertical-align: middle"}),
+          img("http://api.tumblr.com/v2/blog/#{post.asking_name}.tumblr.com/avatar/#{avatarSize}", avatarSize, avatarSize, {style: "vertical-align: middle"}),
           post.asking_name
           '</a>'
         ].join('')
 
         if post.asking_name == "Anonymous"
           asker = [
-            img("https://secure.assets.tumblr.com/images/anonymous_avatar_128.gif", 128, 128, {style: "vertical-align: middle"})
+            img("https://secure.assets.tumblr.com/images/anonymous_avatar_#{avatarSize}.gif", avatarSize, avatarSize, {style: "vertical-align: middle"})
             post.asking_name
           ].join('')
 
-        post_content.push "<blockquote><p>#{asker}: #{post.question}</p></blockquote>"
+        post_content.push "<blockquote><p><strong>#{asker}</strong>: #{post.question}</p></blockquote>"
         post_content.push post.answer
 
 

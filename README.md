@@ -60,6 +60,14 @@ ENV_VARIABLE_NAME=value
 
 Once everything’s up and running, your RSS feeds will be available at `http://localhost:6969`. Check the terminal output for the different URLs you can visit.
 
+# TODO
+
+## Features
+* Use web-based auth flows to output auth tokens (should be pretty straightforward)
+
+## Additional Feeds
+* Instagram (?)
+
 ---
 
 Questions/problems? File an issue and/or bug me [on Twitter][@meyer].

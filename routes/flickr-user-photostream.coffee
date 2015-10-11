@@ -27,14 +27,14 @@ module.exports = (request, response) ->
         response.send 'Photo object is not set'
         return
 
-      feedItems = buildRSSItems(data.photos.photo)
-
       feed = buildRSSFeed({
+        formatter: buildRSSItems
+        request: request
         title: "Flickr Photostream for #{request.params.nsid}"
         description: "All photos taken by #{request.params.nsid}"
-        feed_url: "http://#{request.headers.host}#{request.url}"
         site_url: "http://www.flickr.com/photos/#{request.params.nsid}"
-      }, feedItems)
+        data: data.photos.photo
+      })
 
       response.set 'Content-Type', 'text/xml; charset=utf-8'
       response.send feed.xml('  ')
