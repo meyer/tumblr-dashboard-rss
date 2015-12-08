@@ -5,16 +5,23 @@ lodash = require 'lodash'
 {ucfirst, img, howmany, getTimeDiffString, padLeft, wrapHTMLMaybe} = require('./index')
 
 tumblrConfig = require '../config/tumblr'
-
 user = new tumblr.User(tumblrConfig)
 
-module.exports.getBlogInfo = ->
+module.exports.getBlogInfo = (username = null) ->
   new RSVP.Promise (resolve, reject) ->
-    user.info (err, response) ->
-      if err
-        reject(err)
-      else
-        resolve(response.user)
+    if username
+      blog = new tumblr.Blog("#{username}.tumblr.com", tumblrConfig)
+      blog.info (err, response) ->
+        if err
+          reject(err)
+        else
+          resolve(response.blog)
+    else
+      user.info (err, response) ->
+        if err
+          reject(err)
+        else
+          resolve(response.user)
 
 module.exports.getPosts = (src, postCount = 60) ->
   limit = 20
@@ -25,6 +32,7 @@ module.exports.getPosts = (src, postCount = 60) ->
   typeSingular = ''
   typePlural = ''
   responseKey = ''
+  blog = null
 
   switch src
     when 'dashboard'
@@ -36,7 +44,11 @@ module.exports.getPosts = (src, postCount = 60) ->
       typePlural = 'LIKED POSTS'
       responseKey = 'liked_posts'
     else
-      throw "src `#{src}` not supported"
+      console.log "Loading posts for #{src}.tumblr.com"
+      typeSingular = 'POST'
+      typePlural = 'POSTS'
+      blog = new tumblr.Blog("#{src}.tumblr.com", tumblrConfig)
+      # throw "src `#{src}` not supported"
 
   console.log "POSTS TO LOAD: #{howmany postCount, "post"} in #{howmany ic, "batch", "batches"}"
 
@@ -50,17 +62,28 @@ module.exports.getPosts = (src, postCount = 60) ->
       options = {
         reblog_info: true
         # notes_info: true
+        submission_info: true
         limit: batchSize
         offset: offset
       }
 
-      user[src] options, (error, response) ->
-        if error
-          reject(error)
-          throw error
+      try
+        if blog
+          blog.posts options, (error, response) ->
+            if error
+              reject(error)
+              throw error
+            else
+              resolve(response['posts'])
         else
-          # Extract responseKey from response object
-          resolve(response[responseKey])
+          user[src] options, (error, response) ->
+            if error
+              reject(error)
+              throw error
+            else
+              resolve(response[responseKey])
+      catch err
+        reject(err)
 
       offset += batchSize
 
@@ -149,6 +172,7 @@ module.exports.buildRSSItems = (results) ->
               '</div>'
               photo_desc
               if photo_desc.length > 0 then post_footer else post_footer.slice(1, post_footer.length)
+              "<p>Post URL: <a href='#{post.post_url}'>#{post.post_url}</a></p>"
             ).join('\n\n')
 
             p.guid = p.original_size.url
@@ -157,12 +181,14 @@ module.exports.buildRSSItems = (results) ->
             # post_date = new Date(post.date)
             # p.date = new Date(post_date.getTime() + idx * 1000)
 
+            console.log(JSON.stringify(p, null, '  '))
+
             p
           ).reverse().map (p) ->
             {
               title:       p.title
               description: p.desc
-              url:         post.post_url
+              url:         p.original_size.url
               guid:        p.guid
               categories:  post.tags
               author:      post.blog_name

@@ -7,11 +7,12 @@ require('dotenv').load()
 
 routes =
   flickr:
-    "flickr-photostream.rss":      'flickr-photostream'
-    "flickr-user/:nsid/feed.rss":  'flickr-user-photostream'
+    'flickr-photostream.rss':      'flickr-photostream'
+    'flickr-user/:nsid/feed.rss':  'flickr-user-photostream'
   tumblr:
-    "tumblr-dashboard.rss":  'tumblr-dashboard'
-    "tumblr-likes.rss":      'tumblr-likes'
+    'tumblr-dashboard.rss':         'tumblr-dashboard'
+    'tumblr-likes.rss':             'tumblr-likes'
+    'tumblr-user/:userid/feed.rss': 'tumblr-user'
 
 routePrefixes =
   flickr: process.env.FLICKR_API_KEY
