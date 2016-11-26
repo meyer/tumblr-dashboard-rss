@@ -98,7 +98,12 @@ function getUserRepresentation (p) {
 }
 
 function getDescription (p) {
-  const desc = (p.description && typeof p.description._content === 'string' || '').trim()
+  const desc = (
+    p.description &&
+    typeof p.description._content === 'string' &&
+    p.description._content || ''
+  ).trim()
+
   if (desc.length > 0) {
     return `<blockquote><p>${desc}</p></blockquote>`
   } else {
