@@ -1,15 +1,14 @@
-const RSVP = require('rsvp')
-
 const {getBlogInfo, getPosts, buildRSSItems} = require('../utils/tumblr')
 const {buildRSSFeed} = require('../utils/rss')
 
 module.exports = function(request, response) {
   console.log(`Loading posts for ${request.params.userid}.tumblr.com`)
 
-  return RSVP.hash({
-    userInfo: getBlogInfo(request.params.userid),
-    posts: getPosts(request.params.userid, request.query.post_count),
-  }).then(function(data) {
+  return Promise.all([
+    getBlogInfo(request.params.userid),
+    getPosts(request.params.userid, request.query.post_count),
+  ]).then(function([userInfo, posts]) {
+    const data = {userInfo, posts}
     const feed = buildRSSFeed({
       formatter: buildRSSItems,
       request,

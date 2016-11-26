@@ -1,5 +1,4 @@
 const tumblr = require('tumblr')
-const RSVP = require('rsvp')
 const lodash = require('lodash')
 const unicode = require('./unicode')
 
@@ -14,7 +13,7 @@ const tumblrConfig = require('../config/tumblr')
 const user = new tumblr.User(tumblrConfig)
 
 exports.getBlogInfo = function getBlogInfo(username = null) {
-  return new RSVP.Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     if (username) {
       const blog = new tumblr.Blog(`${username}.tumblr.com`, tumblrConfig)
       return blog.info(function(err, response) {
@@ -73,7 +72,7 @@ exports.getPosts = function getPosts(src, postCount = 60) {
 
     console.log(`* LOADING ${howmany(batchSize, typeSingular, typePlural)}`)
 
-    return new RSVP.Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       const options = {
         reblog_info: true,
         // notes_info: true
@@ -110,7 +109,7 @@ exports.getPosts = function getPosts(src, postCount = 60) {
     })
   })
 
-  return RSVP.all(promises).then(posts => Array.prototype.concat.apply([], posts))
+  return Promise.all(promises).then(posts => Array.prototype.concat.apply([], posts))
 }
 
 exports.buildRSSItems = function buildRSSItems(results) {
