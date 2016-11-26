@@ -1,5 +1,5 @@
 const RSSFeed = require('rss')
-const lodash = require('lodash')
+const padStart = require('lodash.padstart')
 
 exports.buildRSSFeed = function buildRSSFeed(o) {
   const feed = new RSSFeed({
@@ -10,7 +10,7 @@ exports.buildRSSFeed = function buildRSSFeed(o) {
   })
 
   o.formatter(o.data).forEach(function(feedItem, idx, arr) {
-    console.log(`- Feed item ${lodash.padLeft(idx+1, `${arr.length}`.length, ' ')} of ${arr.length}: ${feedItem.title} (${feedItem.date})`)
+    console.log(`- Feed item ${padStart(idx+1, `${arr.length}`.length, ' ')} of ${arr.length}: ${feedItem.title} (${feedItem.date})`)
     return feed.item(feedItem)
   })
 

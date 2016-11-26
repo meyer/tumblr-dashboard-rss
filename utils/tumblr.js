@@ -1,5 +1,5 @@
 const tumblr = require('tumblr')
-const lodash = require('lodash')
+const padStart = require('lodash.padstart')
 const unicode = require('./unicode')
 
 const {
@@ -123,7 +123,7 @@ exports.buildRSSItems = function buildRSSItems(results) {
   console.log('====================')
 
   const feedItems = results[what].map(function(post, idx, arr) {
-    console.log(`- Post ${lodash.padLeft(idx+1, `${arr.length}`.length, ' ')} of ${arr.length}: ${lodash.padLeft(post.id, 13, ' ')} (${post.type})`)
+    console.log(`- Post ${padStart(idx+1, `${arr.length}`.length, ' ')} of ${arr.length}: ${padStart(post.id, 13, ' ')} (${post.type})`)
 
     const post_title = []
     const post_content = []

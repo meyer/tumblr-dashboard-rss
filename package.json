@@ -10,10 +10,10 @@
   "license": "ISC",
   "dependencies": {
     "colors": "^1.1.2",
-    "dotenv": "^1.2.0",
+    "dotenv": "^2.0.0",
     "express": "^4.13.1",
-    "flickrapi": "^0.3.35",
-    "lodash": "^3.10.1",
+    "flickrapi": "^0.6.0",
+    "lodash.padstart": "^4.6.1",
     "moment": "^2.10.6",
     "rss": "^1.1.1",
     "tumblr": "^0.4.1"
