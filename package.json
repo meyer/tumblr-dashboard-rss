@@ -2,14 +2,13 @@
   "name": "node-tumblr-rss",
   "version": "1.0.0",
   "description": "",
-  "main": "index.coffee",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "NODE_ENV=development node ./index.js"
   },
   "author": "Mike Meyer <npm@meyer.fm> (http://meyermade.com)",
   "license": "ISC",
   "dependencies": {
-    "coffee-script": "^1.9.3",
     "colors": "^1.1.2",
     "dotenv": "^1.2.0",
     "express": "^4.13.1",
