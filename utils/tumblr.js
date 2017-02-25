@@ -176,7 +176,7 @@ exports.buildRSSItems = function buildRSSItems(results) {
 
     switch (post.type) {
       case 'photo':
-      case 'link':
+      case 'link': {
         const desc = []
 
         if (post.caption) { desc.push(`${post.caption}`.trim()) }
@@ -241,6 +241,7 @@ exports.buildRSSItems = function buildRSSItems(results) {
           }
         }
         break
+      }
 
       case 'text':
         post_content.push(post.body)
@@ -275,7 +276,7 @@ exports.buildRSSItems = function buildRSSItems(results) {
         post_content.push(post.player.pop().embed_code)
         break
 
-      case 'answer':
+      case 'answer': {
         const avatarSize = 128
 
         let asker
@@ -307,6 +308,7 @@ exports.buildRSSItems = function buildRSSItems(results) {
         post_content.push(`<blockquote><p><strong>${asker}</strong>: ${post.question}</p></blockquote>`)
         post_content.push(post.answer)
         break
+      }
 
       default:
         console.log(`Unsupported post type: ${post.type}`)
