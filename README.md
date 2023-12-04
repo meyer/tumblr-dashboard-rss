@@ -1,13 +1,13 @@
 # Well, well, well, what have we here…
 
-This thing that I have made turns different sites’ authenticated feed APIs into RSS feeds on a per-site bases. It’s built with Heroku in mind, but it should run on just about anything. Only Tumblr and Flickr are supported for now.
+This thing that I have made turns different sites’ authenticated feed APIs into RSS feeds on a per-site basis. It’s built with Heroku in mind, but it should run on just about anything. Only Tumblr and Flickr are supported for now.
 
 My motivation is twofold.
 
 1. Internet Creators have built these beautiful Things, but instead of helping these Things mature and age gracefully, they’ve been under pressure to Monetise and Stay Relevant and Appeal To The Teens. These Things that drew me in with their elegance and simplicity have become a mess of Apps and Engagement Bullshit.
 
-  This is an opinionated step in the other direction.
-2. Tumblr retains no read status and I follow a lot of people on Tumblr, which means I end up missing out on a lot of great stuff. RSS readers were built to solve this problem, but Tumblr lacks a private dashboard RSS feed, so I had to build my one.
+    This is an opinionated step in the other direction.
+2. Tumblr retains no read status and I follow a lot of people on Tumblr, which means I end up missing out on a lot of great stuff. RSS readers were built to solve this problem, but Tumblr lacks a private dashboard RSS feed, so I had to build my own.
 
 # How do I do the thing
 
