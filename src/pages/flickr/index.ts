@@ -44,6 +44,14 @@ export const GET: APIRoute = async (context) => {
   const uuid = crypto.randomUUID();
 
   await context.locals.runtime.env.AUTH.delete(`flickr-token:${requestToken}`);
+
+  invariant(
+    oauthResult.nsid === context.locals.runtime.env.FLICKR_NSID,
+    'Expected %s, received %s',
+    context.locals.runtime.env.FLICKR_NSID,
+    oauthResult.nsid
+  );
+
   await context.locals.runtime.env.AUTH.put(
     `flickr:${uuid}`,
     JSON.stringify(oauthResult)

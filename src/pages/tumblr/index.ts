@@ -1,7 +1,11 @@
 import { invariant } from '@workers-utils/common';
 import type { APIRoute } from 'astro';
 import * as s from 'superstruct';
-import { type KvTokenData, authCodeSchema } from '~/utils/tumblr/tumblrApi';
+import {
+  type KvTokenData,
+  authCodeSchema,
+  getUserInfo,
+} from '~/utils/tumblr/tumblrApi';
 
 const state = '1234';
 
@@ -57,6 +61,14 @@ export const GET: APIRoute = async (context) => {
     ...body,
     expires_at: Date.now() + body.expires_in * 1000,
   };
+
+  const userInfo = await getUserInfo(authData);
+  invariant(
+    userInfo.user.name === context.locals.runtime.env.TUMBLR_USERNAME,
+    'Expected %s, received %s',
+    context.locals.runtime.env.TUMBLR_USERNAME,
+    userInfo.user.name
+  );
 
   const uuid = crypto.randomUUID();
 

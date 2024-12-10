@@ -16,7 +16,9 @@
   ],
   "vars": {
     "FLICKR_API_KEY": "473ab0d04f8679aa8aa4808d77c0ca48",
-    "TUMBLR_OAUTH_CONSUMER_KEY": "7dHAV9lvFXd5Q1MATKPZxRRAQdHTCDfVam9OUK4hcuzomOYEPA"
+    "TUMBLR_OAUTH_CONSUMER_KEY": "7dHAV9lvFXd5Q1MATKPZxRRAQdHTCDfVam9OUK4hcuzomOYEPA",
+    "FLICKR_NSID": "73303990@N00",
+    "TUMBLR_USERNAME": "mikemeyer"
   },
   "workers_dev": true,
   "observability": {
