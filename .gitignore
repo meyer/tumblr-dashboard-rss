@@ -1,6 +1,5 @@
 .astro
 .dev.vars
 .wrangler
-*.json
 dist
 node_modules
