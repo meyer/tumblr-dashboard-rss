@@ -1,21 +1,33 @@
 {
-  "name": "node-tumblr-rss",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "NODE_ENV=development node ./index.js"
-  },
+  "name": "social-media-rss",
+  "version": "0.0.0",
+  "private": true,
   "author": "Mike Meyer <npm@meyer.fm> (http://meyermade.com)",
-  "license": "ISC",
+  "license": "UNLICENSED",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "deploy": "wrangler deploy",
+    "format": "biome check --write .",
+    "typecheck": "tsc --noEmit --diagnostics",
+    "generate-types": "wrangler types src/env-worker.d.ts --env-interface=WorkerEnv"
+  },
   "dependencies": {
-    "colors": "^1.1.2",
-    "dotenv": "^2.0.0",
-    "express": "^4.13.1",
-    "flickrapi": "^0.6.0",
-    "lodash.padstart": "^4.6.1",
-    "moment": "^2.10.6",
-    "rss": "^1.1.1",
-    "tumblr": "^0.4.1"
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/cloudflare": "^12.0.1",
+    "@astrojs/react": "^4.0.0",
+    "@biomejs/biome": "^1.9.4",
+    "@types/react": "^18.3.14",
+    "@types/react-dom": "^18.3.2",
+    "@workers-utils/common": "canary",
+    "astro": "^5.0.3",
+    "jsxstyle": "canary",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "superstruct": "^2.0.2",
+    "typescript": "^5.7.2",
+    "wrangler": "^3.94.0"
   }
 }

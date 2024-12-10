@@ -1,3 +1,6 @@
-.env
+.astro
+.dev.vars
+.wrangler
 *.json
-data/
+dist
+node_modules

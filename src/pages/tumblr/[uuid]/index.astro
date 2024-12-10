@@ -1,0 +1,26 @@
+---
+import { invariant } from '@workers-utils/common';
+import Layout from '~/layouts/Layout.astro';
+import { getTumblrAuthDataFromKV } from '~/utils/tumblr/tumblrApi';
+
+invariant(Astro.params.uuid, 'Missing UUID');
+const data = await getTumblrAuthDataFromKV(Astro.params.uuid, Astro.locals);
+
+const dashboardFeedUrl = new URL(
+  `/tumblr/${Astro.params.uuid}/dashboard`,
+  Astro.url
+);
+const likesFeedUrl = new URL(`/tumblr/${Astro.params.uuid}/likes`, Astro.url);
+const userFeedUrl = new URL(
+  `/tumblr/${Astro.params.uuid}/user/[blog-identifier]`,
+  Astro.url
+);
+---
+
+<Layout>
+  <p>Dashboard Feed: {dashboardFeedUrl}</p>
+  <p>Likes Feed: {likesFeedUrl}</p>
+  <p>User Feed: {userFeedUrl}</p>
+  <p>UUID: {Astro.params.uuid || 'ERROR'}</p>
+  <p>Token expires at: {new Date(data.expires_at).toLocaleString()}</p>
+</Layout>

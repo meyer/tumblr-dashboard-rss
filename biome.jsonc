@@ -1,0 +1,62 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "ignore": ["**/dist/"]
+  },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "ignore": ["**/*.json"]
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "style": {
+        "useTemplate": "off",
+        "noNonNullAssertion": "info"
+      },
+      "suspicious": {
+        "noAssignInExpressions": "info",
+        "noExplicitAny": "info",
+        "noArrayIndexKey": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto"
+    }
+  },
+  "overrides": [
+    {
+      "include": ["*.jsonc", "**/tsconfig.json", "**/tsconfig.*.json"],
+      "json": {
+        "parser": {
+          "allowComments": true,
+          "allowTrailingCommas": true
+        },
+        "formatter": {
+          "trailingCommas": "none"
+        }
+      }
+    }
+  ]
+}

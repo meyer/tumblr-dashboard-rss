@@ -1,0 +1,30 @@
+---
+import Box from '~/components/Box.astro';
+import type { JSONFeed } from '~/jsonfeed';
+import Layout from '~/layouts/Layout.astro';
+
+interface Props {
+  feed: JSONFeed;
+}
+
+const { feed } = Astro.props;
+---
+<Layout title={"Feed preview: " + feed.title}>
+  <Box component="header" margin={15}>
+    <h1>{feed.title}</h1>
+    <p>{feed.description}</p>
+  </Box>
+  <Box component="ul" display="flex" flexDirection="column" gap={40}>
+    {feed.items.map((item) => (
+      <Box component="li" backgroundColor="#EEE" padding="10px 15px" {...{
+        '& img': {
+          maxWidth: 600,
+          height: 'auto',
+        },
+      }}>
+        <Box component="h2" borderBottom="1px solid #CCC" marginBottom={10} paddingBottom={10}>{item.title}</Box>
+        <article set:html={item.content_html} />
+      </Box>
+    ))}
+  </Box>
+</Layout>

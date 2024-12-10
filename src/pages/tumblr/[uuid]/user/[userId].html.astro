@@ -1,0 +1,8 @@
+---
+import JsonFeedViewer from '~/components/JsonFeedViewer.astro';
+import { getUserFeed } from '~/utils/tumblr/getUserFeed';
+
+const feed = await getUserFeed(Astro);
+---
+
+<JsonFeedViewer feed={feed} />

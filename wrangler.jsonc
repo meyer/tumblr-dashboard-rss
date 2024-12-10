@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "feeds",
+  "main": "./dist/_worker.js/index.js",
+  "compatibility_date": "2024-11-27",
+  "compatibility_flags": ["nodejs_compat_v2"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "AUTH",
+      "id": "76a102d64f7b4f8ba7bb419fe29dceee"
+    }
+  ],
+  "vars": {
+    "FLICKR_API_KEY": "473ab0d04f8679aa8aa4808d77c0ca48",
+    "TUMBLR_OAUTH_CONSUMER_KEY": "7dHAV9lvFXd5Q1MATKPZxRRAQdHTCDfVam9OUK4hcuzomOYEPA"
+  },
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  "build": {
+    "command": "npm run build"
+  },
+  "send_metrics": false
+}

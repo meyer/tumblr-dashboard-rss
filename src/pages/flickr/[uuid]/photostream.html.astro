@@ -1,0 +1,8 @@
+---
+import JsonFeedViewer from '~/components/JsonFeedViewer.astro';
+import { getPhotostreamFeed } from '~/utils/flickr/getPhotostreamFeed';
+
+const feed = await getPhotostreamFeed(Astro);
+---
+
+<JsonFeedViewer feed={feed} />

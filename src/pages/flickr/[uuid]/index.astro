@@ -1,0 +1,17 @@
+---
+import { invariant } from '@workers-utils/common';
+import Layout from '~/layouts/Layout.astro';
+import {
+  getFlickrAuthDataFromKV,
+  queryFlickrApi,
+} from '~/utils/flickr/flickrApi';
+
+invariant(Astro.params.uuid, 'Missing UUID');
+
+const authData = await getFlickrAuthDataFromKV(Astro.params.uuid, Astro.locals);
+
+const user = await queryFlickrApi(Astro.locals, authData, 'flickr.test.login');
+---
+<Layout>
+  <pre><code>{JSON.stringify(user, null, 2)}</code></pre>
+</Layout>

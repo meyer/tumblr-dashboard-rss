@@ -1,0 +1,16 @@
+---
+import { css } from 'jsxstyle';
+import type { CSSParams } from 'jsxstyle/utils';
+
+interface Props<K extends keyof astroHTML.JSX.DefinedIntrinsicElements = 'div'>
+  extends CSSParams {
+  component?: K;
+  props?: astroHTML.JSX.DefinedIntrinsicElements[K];
+}
+
+const { component = 'div', props, ...styleProps } = Astro.props;
+const Element = component;
+const className = css(styleProps);
+---
+
+<Element class={className} {...props}><slot /></Element>
